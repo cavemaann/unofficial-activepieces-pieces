@@ -9,3 +9,11 @@ dist-publish/
 .Rhistory
 RELEASING.md
 scripts/release-piece.mjs
+
+# secrets — never commit credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+.npmrc.local

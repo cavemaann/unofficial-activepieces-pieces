@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Blocks a commit if gitleaks finds a secret in the staged changes.
+# Enabled per-clone by `npm install` (see the "prepare" script in package.json),
+# which points core.hooksPath at this directory.
+set -euo pipefail
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "gitleaks not installed — skipping local secret scan." >&2
+  echo "  Install it so commits are scanned: brew install gitleaks" >&2
+  echo "  (CI still scans every push as a backstop.)" >&2
+  exit 0
+fi
+
+gitleaks protect --staged --redact --no-banner
