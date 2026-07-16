@@ -1,0 +1,27 @@
+{
+  "name": "unofficial-activepieces-pieces",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "description": "Unofficial Activepieces pieces by cavemaann. Not affiliated with Activepieces.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "@types/node": "24.11.0",
+    "@typescript-eslint/eslint-plugin": "7.18.0",
+    "@typescript-eslint/parser": "7.18.0",
+    "eslint": "8.57.0",
+    "eslint-plugin-unused-imports": "4.4.1",
+    "tslib": "2.6.2",
+    "turbo": "2.9.14",
+    "typescript": "5.5.4",
+    "vitest": "3.2.6"
+  }
+}

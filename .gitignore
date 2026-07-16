@@ -1,0 +1,11 @@
+node_modules/
+dist/
+release/
+.turbo/
+*.log
+.DS_Store
+coverage/
+dist-publish/
+.Rhistory
+RELEASING.md
+scripts/release-piece.mjs
