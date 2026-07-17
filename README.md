@@ -37,12 +37,6 @@ npm install
 
 Then run any of the workspace tasks:
 
-```bash
-npm run build
-npm run lint
-npm run test
-```
-
 | Task | What it does |
 | --- | --- |
 | `npm run build` | Type-checks and compiles each piece to `dist/` (via turbo). |
