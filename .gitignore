@@ -9,6 +9,7 @@ dist-publish/
 .Rhistory
 RELEASING.md
 scripts/release-piece.mjs
+.claude/
 
 # secrets — never commit credentials
 .env
