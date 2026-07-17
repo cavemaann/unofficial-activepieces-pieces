@@ -69,8 +69,7 @@ local piece-linking workflow in this repo yet.
 
 ## Installing a piece in Activepieces
 
-Both pieces install from the npm registry onto any Activepieces instance — no code changes
-or redeploy needed.
+Both pieces install from the npm registry onto any Activepieces instance.
 
 **Before you start:**
 
