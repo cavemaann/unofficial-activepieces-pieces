@@ -50,8 +50,8 @@ npm run build -- --filter=@cavemaann/piece-reddit-conversions
 npm run test  -- --filter=@cavemaann/piece-reddit-conversions
 ```
 
-`npm run build` is for **type-checking and tests only** — its `dist/` output is not the
-artifact published to npm. Released packages are self-contained bundles (the framework is
+`npm run build` type-checks and compiles each piece to `dist/`, but that output is not the bundled artifact published to npm.
+. Released packages are self-contained bundles (the framework is
 inlined, `dependencies: {}`), built separately against the Activepieces CLI. So a green
 `npm run build` proves the code compiles, not that a release is reproducible.
 
