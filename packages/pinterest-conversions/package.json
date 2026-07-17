@@ -3,10 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "description": "Send server-side web, app, and offline conversion events to Pinterest using the Conversions API.",
+  "author": "Alex Williams (cavemaann)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cavemaann/unofficial-activepieces-pieces.git",
+    "url": "git+https://github.com/cavemaann/unofficial-activepieces-pieces.git",
     "directory": "packages/pinterest-conversions"
   },
   "main": "./dist/src/index.js",
