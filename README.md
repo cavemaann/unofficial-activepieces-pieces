@@ -2,7 +2,7 @@
 
 > **Unofficial** — this project is **not affiliated with, endorsed by, or supported by
 > [Activepieces](https://www.activepieces.com)**. It's a personal home for pieces I've
-> built after upstream said they've temporarily stopped allowing new pull requests for the moment.
+> built after the Activepieces repo said they've temporarily stopped allowing new pull requests for the moment.
 
 ## What's inside
 
