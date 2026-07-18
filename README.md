@@ -30,6 +30,9 @@ Set up the repo (`corepack enable` makes the pinned `npm@11.6.2` take effect):
 
 ```bash
 git clone https://github.com/cavemaann/unofficial-activepieces-pieces.git
+cd unofficial-activepieces-pieces
+corepack enable
+npm install
 ```
 
 Then run any of the workspace tasks:
