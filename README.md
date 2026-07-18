@@ -10,8 +10,9 @@
 | --- | --- | --- | --- |
 | [Reddit Conversions](packages/reddit-conversions/README.md) | [`@cavemaann/piece-reddit-conversions`](https://www.npmjs.com/package/@cavemaann/piece-reddit-conversions) | beta · `0.0.1` | Send server-side web, app, and offline conversion events to Reddit (Conversions API v3). |
 | [Pinterest Conversions](packages/pinterest-conversions/README.md) | [`@cavemaann/piece-pinterest-conversions`](https://www.npmjs.com/package/@cavemaann/piece-pinterest-conversions) | beta · `0.0.1` | Send server-side web, app, and offline conversion events to Pinterest (Conversions API). |
+| [TryBooking](packages/trybooking/README.md) | [`@cavemaann/piece-trybooking`](https://www.npmjs.com/package/@cavemaann/piece-trybooking) | beta · `0.0.1` | Read events, bookings and ticket scans from your TryBooking account (Reporting API). |
 
-> **Beta** — both pieces are published and installable, but still early.
+> **Beta** — all three pieces are published and installable, but still early.
 
 ## Requirements
 
@@ -47,7 +48,7 @@ npm run test
 | --- | --- |
 | `npm run build` | Type-checks and compiles each piece to `dist/` (via turbo). |
 | `npm run lint` | Runs eslint over every piece. |
-| `npm run test` | Runs the unit tests — currently `reddit-conversions` only. |
+| `npm run test` | Runs the unit tests — currently `reddit-conversions` and `trybooking`. |
 
 Scope any task to one piece with a turbo filter:
 
@@ -69,7 +70,7 @@ local piece-linking workflow in this repo yet.
 
 ## Installing a piece in Activepieces
 
-Both pieces install from the npm registry onto any Activepieces instance — no code changes
+All pieces install from the npm registry onto any Activepieces instance — no code changes
 or redeploy needed.
 
 **Before you start:**
@@ -92,12 +93,16 @@ Installing from the npm registry is the supported path here. The **Packed Archiv
 option is greyed out unless your platform has private pieces enabled, and these pieces are
 published publicly anyway — so you don't need it.
 
-**Then connect it.** Both pieces use custom auth, so the first time you add the piece to a
+**Then connect it.** All pieces use custom auth, so the first time you add the piece to a
 flow you'll create a connection. Each piece's README lists the exact credentials:
 
 - [Reddit Conversions](packages/reddit-conversions/README.md) — conversion access token + Pixel ID.
 - [Pinterest Conversions](packages/pinterest-conversions/README.md) — conversion access
   token + ad account ID.
+- [TryBooking](packages/trybooking/README.md) — API key + secret key + region.
+
+TryBooking's **New Booking** webhook trigger is the one exception: it needs no connection,
+though the other TryBooking steps still do.
 
 ## License
 
