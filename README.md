@@ -2,7 +2,7 @@
 
 > **Unofficial** — this project is **not affiliated with, endorsed by, or supported by
 > [Activepieces](https://www.activepieces.com)**. It's a personal home for pieces I've
-> built after upstream said they've temporarily stopped allowing new pull requests for the moment.
+> built after the Activepieces repo said they've temporarily stopped allowing new unsolicited pull requests for the moment.
 
 ## What's inside
 
@@ -38,12 +38,6 @@ npm install
 
 Then run any of the workspace tasks:
 
-```bash
-npm run build
-npm run lint
-npm run test
-```
-
 | Task | What it does |
 | --- | --- |
 | `npm run build` | Type-checks and compiles each piece to `dist/` (via turbo). |
@@ -57,8 +51,8 @@ npm run build -- --filter=@cavemaann/piece-reddit-conversions
 npm run test  -- --filter=@cavemaann/piece-reddit-conversions
 ```
 
-`npm run build` is for **type-checking and tests only** — its `dist/` output is not the
-artifact published to npm. Released packages are self-contained bundles (the framework is
+`npm run build` type-checks and compiles each piece to `dist/`, but that output is not the bundled artifact published to npm.
+. Released packages are self-contained bundles (the framework is
 inlined, `dependencies: {}`), built separately against the Activepieces CLI. So a green
 `npm run build` proves the code compiles, not that a release is reproducible.
 
@@ -70,10 +64,7 @@ local piece-linking workflow in this repo yet.
 
 ## Installing a piece in Activepieces
 
-All pieces install from the npm registry onto any Activepieces instance — no code changes
-or redeploy needed.
-
-**Before you start:**
+All pieces install from the npm registr onto any Activepieces instance (>=0.82.0) 
 
 - Your instance must be **Activepieces 0.82.0 or newer**. Published builds report a
   minimum supported release of `0.82.0` (the piece framework raises the `0.36.1` declared

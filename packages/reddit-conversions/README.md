@@ -10,8 +10,8 @@ events to Reddit.
 
 Custom auth with:
 
-- **Conversion Access Token** (`conversion_token`) — secret Bearer token from Reddit Ads.
-- **Pixel ID** (`pixel_id`) — your Reddit Ads pixel / advertiser ID.
+- **Conversion Access Token** (`conversion_token`) — secret token from Reddit Ads.
+- **Pixel ID** (`pixel_id`) — your Reddit Ads pixel.
 
 ## Actions
 
