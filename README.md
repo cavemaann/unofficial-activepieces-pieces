@@ -9,7 +9,7 @@
 | Piece | npm package | Status | Description |
 | --- | --- | --- | --- |
 | [Reddit Conversions](packages/reddit-conversions/README.md) | [`@cavemaann/piece-reddit-conversions`](https://www.npmjs.com/package/@cavemaann/piece-reddit-conversions) | beta · `0.0.1` | Send server-side web, app, and offline conversion events to Reddit (Conversions API v3). |
-| [Pinterest Conversions](packages/pinterest-conversions/README.md) | [`@cavemaann/piece-pinterest-conversions`](https://www.npmjs.com/package/@cavemaann/piece-pinterest-conversions) | beta · `0.0.1` | Send server-side web, app, and offline conversion events to Pinterest (Conversions API). |
+| [Pinterest Conversions](packages/pinterest-conversions/README.md) | [`@cavemaann/piece-pinterest-conversions`](https://www.npmjs.com/package/@cavemaann/piece-pinterest-conversions) | beta · `0.1.0` | Send server-side web, app, and offline conversion events to Pinterest (Conversions API). |
 | [TryBooking](packages/trybooking/README.md) | [`@cavemaann/piece-trybooking`](https://www.npmjs.com/package/@cavemaann/piece-trybooking) | beta · `0.0.1` | Read events, bookings and ticket scans from your TryBooking account (Reporting API). |
 
 > **Beta** — all three pieces are published and installable, but still early.
@@ -42,7 +42,7 @@ Then run any of the workspace tasks:
 | --- | --- |
 | `npm run build` | Type-checks and compiles each piece to `dist/` (via turbo). |
 | `npm run lint` | Runs eslint over every piece. |
-| `npm run test` | Runs the unit tests — currently `reddit-conversions` and `trybooking`. |
+| `npm run test` | Runs the unit tests. |
 
 Scope any task to one piece with a turbo filter:
 

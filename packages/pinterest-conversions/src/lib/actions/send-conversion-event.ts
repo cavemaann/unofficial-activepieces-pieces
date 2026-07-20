@@ -5,6 +5,12 @@ import {
   ConversionEvent,
   pinterestConversionsClient,
 } from '../common/client';
+import {
+  ConversionEventProps,
+  PINTEREST_ACTION_SOURCE_OPTIONS,
+  PINTEREST_EVENT_OPTIONS,
+  parseConversionEventProps,
+} from '../common/event-schema';
 import { identityHashing } from '../common/hashing';
 
 export const sendConversionEvent = createAction({
@@ -25,43 +31,22 @@ export const sendConversionEvent = createAction({
       description: 'The type of conversion that occurred.',
       required: true,
       options: {
-        options: [
-          { label: 'Page Visit', value: 'page_visit' },
-          { label: 'View Category', value: 'view_category' },
-          { label: 'Search', value: 'search' },
-          { label: 'Add to Cart', value: 'add_to_cart' },
-          { label: 'Checkout', value: 'checkout' },
-          { label: 'Lead', value: 'lead' },
-          { label: 'Sign Up', value: 'signup' },
-          { label: 'Watch Video', value: 'watch_video' },
-          { label: 'Custom', value: 'custom' },
-        ],
+        options: PINTEREST_EVENT_OPTIONS,
       },
-    }),
-    custom_event_name: Property.ShortText({
-      displayName: 'Custom Event Name',
-      description:
-        'Required when Event Name is "Custom". Use 1–100 letters, numbers, underscores, or hyphens.',
-      required: false,
     }),
     action_source: Property.StaticDropdown({
       displayName: 'Action Source',
       description: 'Where the conversion happened.',
       required: true,
       options: {
-        options: [
-          { label: 'Web', value: 'web' },
-          { label: 'Offline', value: 'offline' },
-          { label: 'Android App', value: 'app_android' },
-          { label: 'iOS App', value: 'app_ios' },
-        ],
+        options: PINTEREST_ACTION_SOURCE_OPTIONS,
       },
     }),
-    event_time: Property.Number({
+    event_time: Property.ShortText({
       displayName: 'Event Time',
       description:
-        'Unix timestamp in seconds of when the event happened. Leave empty to use the current time.',
-      required: false,
+        'When the event happened, as a Unix timestamp in seconds or an ISO 8601 date with a timezone (e.g. "2026-07-20T10:00:00Z").',
+      required: true,
     }),
     event_id: Property.ShortText({
       displayName: 'Event ID',
@@ -78,6 +63,12 @@ export const sendConversionEvent = createAction({
       displayName: 'Opt Out',
       description:
         'Whether the user opted out of tracking / ad personalization for this event.',
+      required: false,
+    }),
+    opt_out_type: Property.ShortText({
+      displayName: 'Opt Out Type',
+      description:
+        'Flags for different privacy rights laws to opt out users of sharing personal information. Separate values with commas.',
       required: false,
     }),
     customer_info: Property.MarkDown({
@@ -217,6 +208,70 @@ export const sendConversionEvent = createAction({
       description: 'The search term for a search event.',
       required: false,
     }),
+    app_device: Property.MarkDown({
+      value: '### App & Device (optional)',
+    }),
+    app_id: Property.ShortText({
+      displayName: 'App ID',
+      description: 'The app store app ID.',
+      required: false,
+    }),
+    app_name: Property.ShortText({
+      displayName: 'App Name',
+      description: 'Name of the app.',
+      required: false,
+    }),
+    app_version: Property.ShortText({
+      displayName: 'App Version',
+      description: 'Version of the app.',
+      required: false,
+    }),
+    device_brand: Property.ShortText({
+      displayName: 'Device Brand',
+      description: "Brand of the user's device.",
+      required: false,
+    }),
+    device_carrier: Property.ShortText({
+      displayName: 'Device Carrier',
+      description: "The user's device mobile carrier.",
+      required: false,
+    }),
+    device_model: Property.ShortText({
+      displayName: 'Device Model',
+      description: "Model of the user's device.",
+      required: false,
+    }),
+    language: Property.ShortText({
+      displayName: 'Language',
+      description:
+        "Two-character ISO-639-1 language code indicating the user's language.",
+      required: false,
+    }),
+    os_version: Property.ShortText({
+      displayName: 'OS Version',
+      description: 'Version of the device operating system.',
+      required: false,
+    }),
+    // A dropdown rather than a checkbox: this is a fact about the device, and
+    // an unticked box would assert "not on wifi" for every event where nobody
+    // considered the question. Leaving it empty says nothing instead.
+    wifi: Property.StaticDropdown({
+      displayName: 'Wi-Fi',
+      description:
+        'Whether the user device was connected to wifi. Leave empty if unknown.',
+      required: false,
+      options: {
+        options: [
+          { label: 'Yes', value: 'true' },
+          { label: 'No', value: 'false' },
+        ],
+      },
+    }),
+    device_type: Property.ShortText({
+      displayName: 'Device Type',
+      description: "Type of the user's device.",
+      required: false,
+    }),
     advanced: Property.MarkDown({
       value: '### Advanced (optional)',
     }),
@@ -235,33 +290,28 @@ export const sendConversionEvent = createAction({
     }),
   },
   async run(context) {
-    const props = context.propsValue;
-    const eventName = resolveEventName({
-      eventName: props.event_name,
-      customEventName: props.custom_event_name,
-    });
+    const props = parseConversionEventProps(context.propsValue);
 
     const userData = buildUserData(props);
-    if (!hasRequiredMatchKey(userData)) {
-      throw new Error(
-        'At least one customer identifier is required: provide Email, a Mobile Advertising ID, or both Client IP Address and Client User Agent.'
-      );
-    }
-
     const customData = buildCustomData(props);
 
     const event: ConversionEvent = {
-      event_name: eventName,
+      event_name: props.event_name,
       action_source: props.action_source,
-      event_time: props.event_time ?? Math.floor(Date.now() / 1000),
-      event_id: notBlank(props.event_id) ? props.event_id.trim() : randomUUID(),
-      ...(notBlank(props.event_source_url)
-        ? { event_source_url: props.event_source_url.trim() }
+      event_time: props.event_time,
+      event_id: resolveEventId(props.event_id),
+      // Already trimmed by the schema, and blanks arrive as undefined.
+      ...(props.event_source_url
+        ? { event_source_url: props.event_source_url }
         : {}),
       ...(props.opt_out == null ? {} : { opt_out: props.opt_out }),
       ...(notBlank(props.partner_name)
         ? { partner_name: props.partner_name.trim() }
         : {}),
+      ...buildAppDeviceData(props),
+      ...buildAppInfo(props),
+      // Boolean, so it cannot ride along in the string-typed builder above.
+      ...(props.wifi == null ? {} : { wifi: props.wifi }),
       user_data: userData,
       ...(Object.keys(customData).length > 0 ? { custom_data: customData } : {}),
     };
@@ -289,37 +339,45 @@ export const sendConversionEvent = createAction({
   },
 });
 
-function resolveEventName(params: {
-  eventName: string;
-  customEventName?: string;
-}): string {
-  const { eventName, customEventName } = params;
-  if (eventName !== 'custom') {
-    return eventName;
-  }
-  if (!notBlank(customEventName)) {
-    throw new Error(
-      'Custom Event Name is required when Event Name is "Custom".'
-    );
-  }
-  const trimmedName = customEventName.trim();
-  if (!/^[A-Za-z0-9_-]{1,100}$/.test(trimmedName)) {
-    throw new Error(
-      'Custom Event Name must be 1–100 characters and contain only letters, numbers, underscores, or hyphens.'
-    );
-  }
-  return trimmedName;
-}
-
 function notBlank(value: string | undefined | null): value is string {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+/**
+ * Pinterest requires a non-empty `event_id`, so a blank one is replaced rather
+ * than passed along. A generated ID is unique per call, which means retries are
+ * recorded as separate events — supply your own to deduplicate.
+ *
+ * A supplied ID is sent verbatim, deliberately without trimming. Pinterest
+ * matches it against whatever the Pinterest tag sent and documents no
+ * normalization for it, so trimming would be a guess about the browser side: if
+ * the tag sent " order-1001 ", sending "order-1001" breaks the match and the
+ * conversion double-counts. Whitespace-only is still treated as absent — that
+ * classifies a missing value rather than rewriting a present one.
+ */
+export function resolveEventId(value: string | undefined): string {
+  return notBlank(value) ? value : randomUUID();
 }
 
 function passthrough(value: string | undefined): string | undefined {
   return notBlank(value) ? value.trim() : undefined;
 }
 
-function buildUserData(props: ActionProps): Record<string, unknown> {
+/**
+ * Like `passthrough`, but keeps the value exactly as given.
+ *
+ * For keys Pinterest matches against a value sent from somewhere else, where
+ * trimming one side of the pair is what breaks the match. A blank is still
+ * treated as absent — that classifies a missing value rather than editing a
+ * present one. Same reasoning as `resolveEventId`.
+ */
+function verbatim(value: string | undefined): string | undefined {
+  return notBlank(value) ? value : undefined;
+}
+
+export function buildUserData(
+  props: ConversionEventProps
+): Record<string, unknown> {
   const hashedArray = (value: string | undefined): string[] | undefined => {
     return undefined === value ? undefined : wrap(value);
   };
@@ -344,7 +402,57 @@ function buildUserData(props: ActionProps): Record<string, unknown> {
   return compact(userData);
 }
 
-function buildCustomData(props: ActionProps): Record<string, unknown> {
+/**
+ * Flat app and device fields, sent at the top level of the event rather than
+ * inside `user_data`.
+ */
+export function buildAppDeviceData(
+  props: ConversionEventProps
+): Record<string, string> {
+  return compact({
+    app_id: passthrough(props.app_id),
+    app_name: passthrough(props.app_name),
+    app_version: passthrough(props.app_version),
+    device_brand: passthrough(props.device_brand),
+    device_carrier: passthrough(props.device_carrier),
+    device_model: passthrough(props.device_model),
+    device_type: passthrough(props.device_type),
+    language: passthrough(props.language),
+    os_version: passthrough(props.os_version),
+  }) as Record<string, string>;
+}
+
+/**
+ * `app_id`, `app_name` and `app_version` nested under `app_info`, duplicating
+ * what `buildAppDeviceData` sends flat.
+ *
+ * Pinterest documents both shapes: these three exist at the top level and again
+ * as children of `app_info`, under the same keys. Which one the ingest pipeline
+ * reads is not stated, so both carry the value rather than betting on one.
+ *
+ * Note that `device_info` is not the same case. Its children are `brand`,
+ * `carrier`, `model` and `type` — unprefixed, and so distinct fields from the
+ * top-level `device_brand`, `device_carrier`, `device_model` and `device_type`
+ * this piece sends. There is nothing to duplicate there.
+ *
+ * `app_info` takes six further fields (`app_package_name`, `app_store`,
+ * `install_time`, `user_agent`, `window_height`, `window_width`) that this
+ * piece does not collect.
+ */
+export function buildAppInfo(props: ConversionEventProps): {
+  app_info?: { app_id?: string; app_name?: string; app_version?: string };
+} {
+  const app_info = compact({
+    app_id: passthrough(props.app_id),
+    app_name: passthrough(props.app_name),
+    app_version: passthrough(props.app_version),
+  });
+  return Object.keys(app_info).length > 0 ? { app_info } : {};
+}
+
+export function buildCustomData(
+  props: ConversionEventProps
+): Record<string, unknown> {
   const contentIds = (props.content_ids ?? [])
     .map((id) => String(id).trim())
     .filter((id) => id.length > 0);
@@ -356,19 +464,11 @@ function buildCustomData(props: ActionProps): Record<string, unknown> {
     content_category: passthrough(props.content_category),
     content_brand: passthrough(props.content_brand),
     num_items: props.num_items,
-    order_id: passthrough(props.order_id),
+    opt_out_type: passthrough(props.opt_out_type),
+    order_id: verbatim(props.order_id),
     search_string: passthrough(props.search_string),
   };
   return compact(customData);
-}
-
-function hasRequiredMatchKey(userData: Record<string, unknown>): boolean {
-  const hasEmail = Array.isArray(userData['em']);
-  const hasMaid = Array.isArray(userData['hashed_maids']);
-  const hasIpAndUa =
-    userData['client_ip_address'] !== undefined &&
-    userData['client_user_agent'] !== undefined;
-  return hasEmail || hasMaid || hasIpAndUa;
 }
 
 function wrap(value: string): string[] {
@@ -382,31 +482,3 @@ function compact(record: Record<string, unknown>): Record<string, unknown> {
     )
   );
 }
-
-type ActionProps = {
-  email?: string;
-  phone?: string;
-  first_name?: string;
-  last_name?: string;
-  city?: string;
-  state?: string;
-  zip?: string;
-  country?: string;
-  gender?: string;
-  date_of_birth?: string;
-  external_id?: string;
-  maid?: string;
-  client_ip_address?: string;
-  client_user_agent?: string;
-  click_id?: string;
-  partner_id?: string;
-  currency?: string;
-  value?: number;
-  content_ids?: unknown[];
-  content_name?: string;
-  content_category?: string;
-  content_brand?: string;
-  num_items?: number;
-  order_id?: string;
-  search_string?: string;
-};

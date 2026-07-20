@@ -70,6 +70,20 @@ export type ConversionEvent = {
   event_source_url?: string;
   opt_out?: boolean;
   partner_name?: string;
+  // Flat app and device fields, all documented at the top level. The three app
+  // fields are documented a second time inside `app_info` under the same keys,
+  // so they are sent in both shapes — see `buildAppInfo`.
+  app_id?: string;
+  app_name?: string;
+  app_version?: string;
+  app_info?: { app_id?: string; app_name?: string; app_version?: string };
+  device_brand?: string;
+  device_carrier?: string;
+  device_model?: string;
+  device_type?: string;
+  language?: string;
+  os_version?: string;
+  wifi?: boolean;
   user_data: Record<string, unknown>;
   custom_data?: Record<string, unknown>;
 };
