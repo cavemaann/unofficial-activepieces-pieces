@@ -194,6 +194,19 @@ describe('run — assembled payload', () => {
     ]);
   });
 
+  it('omits wifi entirely when the dropdown was left empty', async () => {
+    // Empty means unknown, and unknown must not become "not on wifi". This has
+    // to assert on the assembled event: run() attaches wifi, so a builder-level
+    // check would pass no matter what run() did.
+    await runAction(minimalProps);
+    expect('wifi' in sentCall().events[0]).toBe(false);
+  });
+
+  it('sends an explicit No, unlike an empty one', async () => {
+    await runAction({ ...minimalProps, wifi: 'false' });
+    expect(sentCall().events[0].wifi).toBe(false);
+  });
+
   it('sends the ad account ID from the connection', async () => {
     await runAction(minimalProps);
     expect(sentCall().adAccountId).toBe('549755885175');

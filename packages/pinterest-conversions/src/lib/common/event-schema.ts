@@ -194,6 +194,12 @@ const eventSourceUrl = z
  * as `null` — a silent wrong value where the original string produces a type
  * error from Pinterest that names the field. Fractions are forwarded too, for
  * the same reason; rounding 3.7 to 4 would invent a quantity nobody stated.
+ *
+ * An integer past `MAX_SAFE_INTEGER` is forwarded as the original string for
+ * that same reason. `Number("99999999999999999999")` is 1e20, which is finite
+ * and so passes every obvious guard while being a different number than the one
+ * given — the silent wrong value this function exists to avoid, arrived at by
+ * rounding instead of by NaN.
  */
 const numericIfPossible = z
   .union([z.string(), z.number()])
@@ -204,27 +210,40 @@ const numericIfPossible = z
     const trimmed = value.trim();
     if (trimmed === '') return undefined;
     const parsed = Number(trimmed);
-    return Number.isFinite(parsed) ? parsed : trimmed;
+    if (!Number.isFinite(parsed)) return trimmed;
+    // Fractions stay numbers; only whole numbers can silently lose precision.
+    if (Number.isInteger(parsed) && !Number.isSafeInteger(parsed)) {
+      return trimmed;
+    }
+    return parsed;
   });
 
 /**
- * A checkbox whose value is discarded when it cannot be read, rather than
- * failing the run.
+ * A flag whose value is discarded when it cannot be read, rather than failing
+ * the run.
+ *
+ * Accepts `unknown` on purpose. A narrower union rejects an unexpected type
+ * before the transform runs, which turns the drop into a thrown error — and the
+ * types most likely to arrive unexpectedly here are exactly the ones a bound
+ * expression produces.
  *
  * Only for flags where absence is neutral. `opt_out` and `test_mode` use the
  * strict `checkbox` because absence there is an affirmative "track this user"
  * and "record this for real" — see the note on field 6.
  */
-const optionalFlag = z
-  .union([z.boolean(), z.string()])
-  .nullish()
-  .transform((value): boolean | undefined => {
-    if (typeof value === 'boolean') return value;
-    const normalized = value?.trim().toLowerCase();
+const optionalFlag = z.unknown().transform((value): boolean | undefined => {
+  if (typeof value === 'boolean') return value;
+  // 1 and 0 are how a SQL bit column or a spreadsheet export states a boolean,
+  // and they are unambiguous. Any other number is not, so it falls through.
+  if (value === 1) return true;
+  if (value === 0) return false;
+  if (typeof value === 'string') {
+    const normalized = value.trim().toLowerCase();
     if (normalized === 'true') return true;
     if (normalized === 'false') return false;
-    return undefined;
-  });
+  }
+  return undefined;
+});
 
 /** PENDING: `Number` props reach the action as `string | number`. */
 const pendingNumber = z

@@ -355,16 +355,27 @@ describe('wifi', () => {
   });
 
   it('says nothing at all when left empty', () => {
-    // The reason this is a dropdown and not a checkbox: an unticked box would
-    // claim the device was off wifi for every event nobody thought about it.
-    const event = buildAppDeviceData(parseProps(validProps({})));
+    // The payload-level half of this is in send-conversion-event.test.ts: wifi
+    // is attached in run(), so asserting on a builder here would prove nothing.
     expect(parseProps(validProps({})).wifi).toBeUndefined();
-    expect('wifi' in event).toBe(false);
   });
 
   it('still sends an explicit No', () => {
     // Distinct from empty: this one is a claim the user actually made.
     expect(parseProps(validProps({ wifi: false })).wifi).toBe(false);
+  });
+
+  it('reads 1 and 0 rather than dropping them', () => {
+    // What a SQL bit column or a spreadsheet export produces.
+    expect(parseProps(validProps({ wifi: 1 })).wifi).toBe(true);
+    expect(parseProps(validProps({ wifi: 0 })).wifi).toBe(false);
+  });
+
+  it('drops an unreadable type instead of failing the run', () => {
+    // The whole point of accepting unknown: a narrower union would throw here,
+    // costing the conversion over a field nobody needs.
+    expect(parseProps(validProps({ wifi: { on: true } })).wifi).toBeUndefined();
+    expect(parseProps(validProps({ wifi: 7 })).wifi).toBeUndefined();
   });
 });
 
@@ -391,6 +402,23 @@ describe('num_items', () => {
     // Number("abc") is NaN, which JSON.stringify writes as null — a silent
     // wrong value, where the string draws a type error naming the field.
     expect(parseProps(validProps({ num_items: 'abc' })).num_items).toBe('abc');
+  });
+
+  it('forwards an integer too large to represent, rather than rounding it', () => {
+    // Number('99999999999999999999') is 1e20 — finite, so it passes the obvious
+    // guard, but a different number than the one given. Converting would be the
+    // same silent wrong value the NaN case above exists to avoid.
+    const huge = '99999999999999999999';
+    expect(parseProps(validProps({ num_items: huge })).num_items).toBe(huge);
+  });
+
+  it('still converts values that survive the round trip', () => {
+    // The precision guard must not catch ordinary input.
+    expect(parseProps(validProps({ num_items: '3.0' })).num_items).toBe(3);
+    expect(parseProps(validProps({ num_items: '3.7' })).num_items).toBe(3.7);
+    expect(
+      parseProps(validProps({ num_items: '9007199254740991' })).num_items
+    ).toBe(9_007_199_254_740_991);
   });
 });
 

@@ -36,11 +36,19 @@ const digitsOnly = (value: string): string => value.replace(/\D/g, '');
  * - Leading zeros absorb the `00` international dialling prefix, so
  *   '0044 7700 900123' and '+44 7700 900123' reach the same digest.
  *
- * What is deliberately not handled is a bare national number with no country
- * code at all ('07700 900123'). Recovering that needs a default region, and a
- * wrong guess rewrites the number into a digest matching nobody —
- * indistinguishable from a user Pinterest has never seen. The field asks for a
- * country code; a caller who omits it gets no match rather than a wrong one.
+ * Two cases are knowingly left unmatched, both because the fix needs knowledge
+ * this function does not have:
+ *
+ * - A bare national number with no country code ('07700 900123'). Recovering it
+ *   needs a default region, and a wrong guess rewrites the number into a digest
+ *   matching nobody.
+ * - A parenthesised area code carrying the trunk digit ('+44 (020) 7946 0958'
+ *   normalizes to 4402079460958, not the E.164 442079460958). Stripping that
+ *   zero is only right per country: Italy keeps its leading zero, so +39 06...
+ *   would break. Doing it correctly needs a country prefix table.
+ *
+ * Both fail the same way — a well-formed digest that matches nobody, with no
+ * error from either side. Callers should send E.164.
  */
 const phone = (value: string): string =>
   digitsOnly(value.replace(/\(0\)/g, '')).replace(/^0+/, '');

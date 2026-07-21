@@ -62,18 +62,26 @@ describe('normalization before hashing', () => {
     expect(identityHashing.phone('0044 7700 900123')).toBe(e164);
   });
 
-  it('leaves a bracketed area code alone', () => {
-    // Only a bare '(0)' is the trunk prefix. Stripping the zero from '(020)'
-    // would delete a real digit.
+  // Two known gaps, asserted so the cost stays visible rather than living only
+  // in a comment. Both produce a digest that matches nobody, silently. Neither
+  // is fixable without a country prefix table — see the note in hashing.ts.
+  it('does NOT match E.164 when the area code carries the trunk digit', () => {
+    // '+44 (020) 7946 0958' is the same number as '+44 20 7946 0958', but the
+    // zero survives. Stripping it is only correct per country: Italy keeps its
+    // leading zero, so a blanket rule would break +39 06...
     expect(identityHashing.phone('+44 (020) 7946 0958')).toBe(
       sha256('4402079460958')
     );
+    expect(identityHashing.phone('+44 (020) 7946 0958')).not.toBe(
+      sha256('442079460958')
+    );
   });
 
-  it('cannot rescue a national number with no country code', () => {
-    // Documented limit, asserted so the cost is visible: this does not collide
-    // with the E.164 digest above, and no guess would be safe.
+  it('does NOT match E.164 for a national number with no country code', () => {
     expect(identityHashing.phone('07700 900123')).toBe(sha256('7700900123'));
+    expect(identityHashing.phone('07700 900123')).not.toBe(
+      sha256('447700900123')
+    );
   });
 
   it('reduces a city to letters and digits', () => {

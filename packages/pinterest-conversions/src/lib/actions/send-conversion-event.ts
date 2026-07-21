@@ -83,7 +83,7 @@ export const sendConversionEvent = createAction({
     phone: Property.ShortText({
       displayName: 'Phone Number',
       description:
-        'Customer phone number including country code. Hashed automatically (symbols and spaces are stripped).',
+        'Customer phone number in E.164 format (e.g. "+447700900123"). Hashed automatically (symbols and spaces are stripped). A national-format number, or one written with the trunk zero in brackets like "+44 (020)", will not match.',
       required: false,
     }),
     first_name: Property.ShortText({
